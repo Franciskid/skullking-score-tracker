@@ -1,0 +1,131 @@
+.container {
+  display: flex;
+  justify-content: center;
+  flex-wrap: nowrap;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 12px 6px;
+  max-width: 255px;
+  margin: 0 auto;
+  scrollbar-width: thin;
+  scrollbar-color: #8a0303 transparent;
+  -webkit-overflow-scrolling: touch;
+  mask-image: linear-gradient(to right, black 85%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%);
+}
+
+.container::-webkit-scrollbar {
+  height: 4px;
+}
+
+.container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.container::-webkit-scrollbar-thumb {
+  background: #8a0303;
+  border-radius: 10px;
+}
+
+.option {
+  flex: 0 0 40px;
+  /* Slightly larger for the image details */
+  min-width: 40px;
+  /* Force visibility in Safari */
+  height: 40px;
+  border-radius: 50%;
+
+  /* Gold Coin Image Base */
+  background-image: url('/assets/gold-coin.png');
+  background-size: cover;
+  background-position: center;
+  background-color: transparent;
+
+  /* Unselected State: Tarnished/Old Coin */
+  filter: sepia(0.8) brightness(0.6) grayscale(0.4);
+
+  color: #fff;
+  font-family: var(--font-cinzel);
+  font-weight: 800;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+  text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.8);
+  border: none;
+  /* Image acts as border */
+}
+
+.option:hover {
+  filter: sepia(0.5) brightness(0.8);
+  transform: scale(1.1) rotate(10deg);
+  z-index: 10;
+}
+
+.selected {
+  /* Shiny Gold */
+  filter: none;
+  /* Full color */
+  color: #3e2723;
+  /* Dark Ink text for contrast on gold */
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
+  transform: scale(1.2);
+  z-index: 5;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+}
+
+@media (max-width: 600px) {
+
+  .container {
+
+    max-width: 260px;
+    /* Adjusted to fit exactly 6 items + peek */
+
+    mask-image: linear-gradient(to right, black 90%, transparent 100%);
+
+    -webkit-mask-image: linear-gradient(to right, black 90%, transparent 100%);
+
+  }
+
+  .option {
+
+    flex: 0 0 36px;
+
+    min-width: 36px;
+
+    height: 36px;
+
+    font-size: 0.9rem;
+
+  }
+
+}
+
+
+
+@media (max-width: 380px) {
+
+  .container {
+
+    max-width: 200px;
+
+    gap: 4px;
+
+  }
+
+  .option {
+
+    flex: 0 0 28px;
+
+    min-width: 28px;
+
+    height: 28px;
+
+    font-size: 0.75rem;
+
+  }
+
+}

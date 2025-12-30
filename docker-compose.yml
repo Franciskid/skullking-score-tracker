@@ -1,0 +1,12 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "${FRONT_PORT:-3000}:${FRONT_PORT:-3000}"
+    env_file:
+      - .env
+    environment:
+      - PORT=${FRONT_PORT:-3000}
+    restart: always

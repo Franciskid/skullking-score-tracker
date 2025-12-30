@@ -1,0 +1,44 @@
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 1rem;
+}
+
+.form {
+  padding: 3rem;
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  text-align: center;
+}
+
+.input {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--card-border);
+  padding: 0.8rem 1rem;
+  border-radius: 8px;
+  color: white;
+  font-size: 1rem;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.button {
+  background: var(--accent);
+  color: white;
+  padding: 0.8rem;
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+.error {
+  color: #ff4d4d;
+  font-size: 0.9rem;
+}

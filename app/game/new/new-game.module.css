@@ -1,0 +1,411 @@
+.container {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  min-height: 80vh;
+  padding: 2rem;
+  position: relative;
+}
+
+.layout {
+  display: flex;
+  gap: 2rem;
+  width: 100%;
+  max-width: 1200px;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+/* Left Panel: Card (Main) */
+.card {
+  flex: 2;
+  /* Takes more space */
+  min-width: 350px;
+  padding: 3rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  text-align: center;
+  /* Map Texture inherited */
+  border: 4px solid var(--wood);
+  box-shadow: 10px 10px 40px rgba(0, 0, 0, 0.6);
+  position: relative;
+  z-index: 10;
+}
+
+.card h2 {
+  font-family: var(--font-cinzel);
+  color: #3e2723;
+  font-size: 2.5rem;
+  border-bottom: 2px solid #3e2723;
+  padding-bottom: 1rem;
+}
+
+.playerList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  margin-bottom: 2rem;
+}
+
+.inputGroup {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: rgba(255, 255, 255, 0.3);
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: grab;
+  transition: transform 0.2s, box-shadow 0.2s;
+  border: 1px dashed transparent;
+}
+
+.inputGroup:active {
+  cursor: grabbing;
+}
+
+.inputGroup.dragging {
+  opacity: 0.5;
+  background: rgba(255, 255, 255, 0.6);
+  border-color: #8a0303;
+}
+
+.dragHandle {
+  font-size: 1.2rem;
+  color: #5d4037;
+  cursor: grab;
+}
+
+.inputLabel {
+  font-family: var(--font-cinzel);
+  color: var(--gold);
+  font-weight: 800;
+  font-size: 1.2rem;
+  text-shadow: 1px 1px 0 #3e2723;
+  width: 30px;
+}
+
+.input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  border-bottom: 2px dashed #5d4037;
+  padding: 0.5rem;
+  color: #3e2723;
+  font-size: 1.3rem;
+  font-family: var(--font-cinzel);
+  font-weight: 700;
+  max-width: 80%;
+}
+
+.input:focus {
+  outline: none;
+  border-bottom: 3px solid #8a0303;
+}
+
+.deleteBtn {
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: #8a0303;
+  /* Pirate Red */
+  cursor: pointer;
+  opacity: 0.7;
+  transition: all 0.2s ease;
+  line-height: 1;
+  text-shadow: 1px 1px 0px rgba(255, 255, 255, 0.3);
+}
+
+.deleteBtn:hover {
+  opacity: 1;
+  transform: scale(1.2) rotate(10deg);
+  filter: drop-shadow(0 0 5px rgba(138, 3, 3, 0.5));
+}
+
+/* Buttons */
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center;
+}
+
+.primaryBtn {
+  background: #8a0303;
+  color: #fff;
+  padding: 1.5rem 4rem;
+  /* HUGE */
+  border-radius: 4px;
+  font-weight: 800;
+  font-size: 1.5rem;
+  border: 3px solid var(--gold);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+  font-family: var(--font-cinzel);
+  transition: transform 0.2s;
+  width: 100%;
+  max-width: 500px;
+  position: relative;
+  overflow: hidden;
+}
+
+.primaryBtn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(45deg, transparent 40%, rgba(255, 255, 255, 0.2) 50%, transparent 60%);
+  animation: shine 3s infinite;
+}
+
+.primaryBtn:hover {
+  transform: scale(1.02) translateY(-2px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6);
+}
+
+.secondaryBtn {
+  background: transparent;
+  color: #3e2723;
+  padding: 0.8rem 2rem;
+  border: 2px dashed #5d4037;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-family: var(--font-cinzel);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.secondaryBtn:hover {
+  background: rgba(93, 64, 55, 0.1);
+  border-style: solid;
+}
+
+/* Right Panel: Tavern */
+.tavern {
+  flex: 1;
+  max-width: 300px;
+  /* Constrained width */
+  padding: 1.5rem;
+  max-height: 600px;
+  overflow-y: auto;
+  border: 3px solid #5d4037;
+  background-color: rgba(245, 245, 220, 0.9);
+  /* Opaque parchment */
+}
+
+.tavern h3 {
+  font-family: var(--font-cinzel);
+  color: #3e2723;
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+  text-align: center;
+  border-bottom: 1px solid #5d4037;
+  padding-bottom: 0.5rem;
+}
+
+.tavernList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.wantedPoster {
+  background: #fff8dc;
+  border: 1px solid #5d4037;
+  padding: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.wantedPoster:hover {
+  transform: translateX(-3px);
+  border-color: #8a0303;
+  background: #fff;
+}
+
+.disabledPoster {
+  opacity: 0.5;
+  filter: grayscale(1);
+  cursor: not-allowed;
+  background: #ddd;
+}
+
+.disabledPoster:hover {
+  transform: none;
+  border-color: #5d4037;
+}
+
+.posterName {
+  font-family: var(--font-cinzel);
+  font-weight: 700;
+  font-size: 1rem;
+  color: #3e2723;
+  margin-left: 0.5rem;
+  flex: 1;
+}
+
+.posterStats {
+  font-size: 0.7rem;
+  color: #5d4037;
+  display: flex;
+  flex-direction: column;
+  text-align: right;
+}
+
+.emptyTavern {
+  text-align: center;
+  color: #aaa;
+  font-size: 0.9rem;
+}
+
+/* Dice Section */
+.diceSection {
+  margin-top: 2rem;
+  padding: 1rem;
+  border-top: 2px dashed #5d4037;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.diceContainer {
+  font-size: 3rem;
+  perspective: 100px;
+}
+
+.dice {
+  display: inline-block;
+  transition: transform 0.1s;
+}
+
+.rolling {
+  animation: roll 0.5s linear infinite;
+}
+
+.diceResult {
+  font-size: 1.5rem;
+  color: #8a0303;
+  font-family: var(--font-cinzel);
+  font-weight: 800;
+  animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes shine {
+  0% {
+    transform: translateX(-150%);
+  }
+
+  100% {
+    transform: translateX(150%);
+  }
+}
+
+@keyframes popIn {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes roll {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  25% {
+    transform: rotate(90deg);
+  }
+
+  50% {
+    transform: rotate(180deg);
+  }
+
+  75% {
+    transform: rotate(270deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 768px) {
+
+  .container {
+
+    padding: 0.5rem;
+
+  }
+
+  .layout {
+
+    flex-direction: column;
+
+    align-items: center;
+
+    gap: 1rem;
+
+    width: 100%;
+
+  }
+
+  .tavern {
+
+    max-width: 100%;
+
+    width: 100%;
+
+    min-width: 0;
+
+    padding: 1rem;
+
+  }
+
+  .card {
+
+    width: 100%;
+
+    min-width: 0;
+
+    padding: 1rem;
+    /* Reduced padding */
+
+  }
+
+  .card h2 {
+
+    font-size: 1.8rem;
+
+  }
+
+  .primaryBtn {
+
+    padding: 1rem;
+
+    font-size: 1.2rem;
+
+    max-width: 100%;
+
+  }
+
+  .inputGroup {
+
+    padding: 0.4rem;
+
+    gap: 0.5rem;
+
+  }
+
+}

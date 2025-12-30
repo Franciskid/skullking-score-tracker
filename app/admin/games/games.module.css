@@ -1,0 +1,95 @@
+.container {
+  padding: 2rem;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.tableContainer {
+  overflow-x: auto;
+  border: 1px solid var(--gold);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.table th {
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.5);
+  color: var(--gold);
+  font-family: var(--font-cinzel);
+  border-bottom: 2px solid var(--accent);
+}
+
+.playerScroll {
+  max-width: 200px;
+  max-height: 80px;
+  overflow-y: auto;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: #fff;
+}
+
+.table td {
+  padding: 1rem;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.1);
+}
+
+.idCol {
+  font-family: monospace;
+  opacity: 0.7;
+}
+
+.status {
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.active {
+  background: rgba(46, 204, 113, 0.2);
+  color: #2ecc71;
+}
+
+.finished {
+  background: rgba(255, 255, 255, 0.1);
+  color: #aaa;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.viewBtn {
+  background: rgba(212, 175, 55, 0.1);
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  border: 1px solid transparent;
+}
+
+.viewBtn:hover {
+  border-color: var(--gold);
+}
+
+.deleteBtn {
+  background: rgba(255, 0, 0, 0.1);
+  color: #ff5555;
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.deleteBtn:hover {
+  background: rgba(255, 0, 0, 0.2);
+}

@@ -1,0 +1,131 @@
+:root {
+  --bg-ocean: #050b14;
+  --gold: #d4af37;
+  --gold-glow: rgba(212, 175, 55, 0.6);
+  --crimson: #8a0303;
+  --ink: #3e2723;
+  /* Dark Brown for text on map */
+  --wood: #5d4037;
+
+  --font-cinzel: var(--font-cinzel), serif;
+  --font-lato: var(--font-lato), sans-serif;
+
+  --border-rough: 2px solid rgba(93, 64, 55, 0.5);
+  --shadow-strong: 0 15px 40px -10px rgba(0, 0, 0, 0.9);
+
+  /* Missing variables */
+  --accent: #8a0303;
+  /* Crimson for buttons/accent */
+  --card-border: rgba(93, 64, 55, 0.5);
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+body {
+  background-color: var(--bg-ocean);
+  background-image: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.6)), url('/assets/pirate-ship.png');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  color: #e3dcd2;
+  font-family: var(--font-lato);
+  min-height: 100vh;
+  overflow-x: hidden; /* Prevent horizontal scroll from animations */
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-cinzel);
+  color: var(--gold);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  text-shadow: 2px 2px 0px #000;
+}
+
+a {
+  color: var(--gold);
+  text-decoration: none;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+a:hover {
+  color: #fff;
+  text-shadow: 0 0 10px var(--gold);
+}
+
+/* The Map Paper Container */
+.glass {
+  /* Strong overlay to mute the map detail for readability */
+  background-image: linear-gradient(rgba(245, 240, 220, 0.85), rgba(235, 225, 200, 0.85)), url('/assets/old-map.png');
+  background-size: cover;
+  background-position: center;
+  border: var(--border-rough);
+  border-radius: 2px;
+  box-shadow: var(--shadow-strong);
+  color: var(--ink);
+  position: relative;
+  overflow: visible;
+  transform: rotate(-0.5deg);
+  transition: transform 0.3s ease;
+}
+
+.glass:hover {
+  transform: rotate(0deg) scale(1.005);
+}
+
+/* Fix text color inside map containers */
+.glass h1,
+.glass h2,
+.glass h3,
+.glass h4,
+.glass th,
+.glass td,
+.glass span,
+.glass div {
+  color: var(--ink);
+  text-shadow: none;
+  text-transform: uppercase;
+}
+
+/* Exception for specific UI elements that might need contrast */
+.glass button,
+.glass .activeCell {
+  color: initial;
+}
+
+.glow-text {
+  text-shadow: 0 0 15px var(--gold-glow);
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  font-family: var(--font-cinzel);
+  text-transform: uppercase;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+  overflow: visible;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #2c1e14;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--gold);
+  border: 2px solid #2c1e14;
+  border-radius: 5px;
+}
