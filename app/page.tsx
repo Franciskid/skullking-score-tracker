@@ -8,7 +8,7 @@ export default function Home() {
         <h1 className="glow-text">Skull King</h1>
         <p>Le Scoreboard Ultime</p>
       </header>
-      
+
       <section className={styles.hero}>
         <div className={styles.pirateWrapper}>
           <img src="/assets/Pirate.png" alt="" className={styles.peekingPirate} />
@@ -26,7 +26,11 @@ export default function Home() {
       </section>
 
       <footer className={styles.footer}>
-        <p>© 2025 Skull King Tracker</p>
+        <p>
+          © 2025 Skull King Tracker
+          <span style={{ margin: '0 8px' }}>•</span>
+          <a href="https://github.com/Franciskid/skullking-score-tracker" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--gold)', textDecoration: 'underline' }}>Git</a>
+        </p>
       </footer>
     </div>
   );
