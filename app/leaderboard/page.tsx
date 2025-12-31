@@ -26,21 +26,26 @@ export default async function LeaderboardPage() {
     .eq('games.status', 'finished');
 
   const statsMap = new Map<string, PlayerStats>();
-  const gameWinners = new Map<string, { playerId: string, score: number }>();
+  const gameTopScores = new Map<string, number>();
+  const gameWinnerIds = new Map<string, Set<string>>();
 
   if (results) {
-    // 1. Identify winners per game
+    // 1. Find top score for each game
     results.forEach(r => {
-      const currentBest = gameWinners.get(r.game_id);
-      if (!currentBest || r.total_score > currentBest.score) {
-        gameWinners.set(r.game_id, { playerId: r.player_id, score: r.total_score });
+      const currentTop = gameTopScores.get(r.game_id) || -Infinity;
+      if (r.total_score > currentTop) {
+        gameTopScores.set(r.game_id, r.total_score);
+        gameWinnerIds.set(r.game_id, new Set([r.player_id]));
+      } else if (r.total_score === currentTop) {
+        // Tie - add to winners
+        gameWinnerIds.get(r.game_id)?.add(r.player_id);
       }
     });
 
     // 2. Aggregate Stats
     results.forEach(r => {
       if (!r.players) return;
-      
+
       const stats = statsMap.get(r.player_id) || {
         id: r.player_id,
         name: (r.players as any)?.name || 'Unknown',
@@ -52,7 +57,8 @@ export default async function LeaderboardPage() {
 
       stats.gamesPlayed += 1;
       stats.totalPoints += r.total_score;
-      if (gameWinners.get(r.game_id)?.playerId === r.player_id) {
+      // Award win to ALL tied players
+      if (gameWinnerIds.get(r.game_id)?.has(r.player_id)) {
         stats.wins += 1;
       }
       statsMap.set(r.player_id, stats);

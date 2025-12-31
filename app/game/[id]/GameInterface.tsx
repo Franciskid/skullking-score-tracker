@@ -43,14 +43,15 @@ export default function GameInterface({
   const [loading, setLoading] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [showVictory, setShowVictory] = useState(true);
+  const [editingCell, setEditingCell] = useState<{ round: number, playerId: string, field: 'bid' | 'tricks' | 'bonus' } | null>(null);
+  const [editValue, setEditValue] = useState<number>(0);
 
   const router = useRouter();
   const isGameOver = round > 10;
 
-  const winner = isGameOver
-    ? totals.reduce((prev, current) => (prev.score > current.score ? prev : current), totals[0])
-    : null;
-  const winnerName = players.find(p => p.gamePlayerId === winner?.id)?.name || 'Inconnu';
+  const topScore = isGameOver ? Math.max(...totals.map(t => t.score)) : 0;
+  const winners = isGameOver ? totals.filter(t => t.score === topScore) : [];
+  const winnerNames = winners.map(w => players.find(p => p.gamePlayerId === w.id)?.name || 'Inconnu').join(' & ');
 
   const handleReset = async () => {
     if (!confirm("Êtes-vous sûr ? Cela effacera tous les scores de cette partie.")) return;
@@ -75,6 +76,66 @@ export default function GameInterface({
 
   const handleBonusChange = (pid: string, val: number) => {
     setCurrentBonus(prev => ({ ...prev, [pid]: val }));
+  };
+
+  const startInlineEdit = (roundNum: number, playerId: string, field: 'bid' | 'tricks' | 'bonus') => {
+    const roundData = historyState.find(h => h.roundNumber === roundNum);
+    if (!roundData) return;
+    const s = roundData.playerScores[playerId];
+    if (!s) return;
+    setEditingCell({ round: roundNum, playerId, field });
+    setEditValue(s[field]);
+  };
+
+  const saveInlineEdit = async () => {
+    if (!editingCell) return;
+    const { round: editRound, playerId, field } = editingCell;
+
+    // Update history in-place
+    const newHistory = historyState.map(h => {
+      if (h.roundNumber !== editRound) return h;
+      const oldScore = h.playerScores[playerId];
+      if (!oldScore) return h;
+
+      const updatedScoreData = { ...oldScore, [field]: editValue };
+      updatedScoreData.score = calculateRoundScore({
+        roundNumber: editRound,
+        bid: updatedScoreData.bid,
+        tricksWon: updatedScoreData.tricks,
+        bonusPoints: updatedScoreData.bonus
+      });
+
+      return {
+        ...h,
+        playerScores: { ...h.playerScores, [playerId]: updatedScoreData }
+      };
+    });
+
+    setHistory(newHistory);
+
+    // Recalculate totals from all history
+    const newTotals = players.map(p => {
+      let score = 0;
+      newHistory.forEach(h => {
+        const s = h.playerScores[p.gamePlayerId];
+        if (s) score += s.score;
+      });
+      return { id: p.gamePlayerId, score };
+    });
+    setTotals(newTotals);
+
+    // Save to DB
+    const roundData = newHistory.find(h => h.roundNumber === editRound);
+    if (roundData) {
+      const scoresToSubmit = players.map(p => {
+        const s = roundData.playerScores[p.gamePlayerId];
+        return s ? { gamePlayerId: p.gamePlayerId, bid: s.bid, tricks: s.tricks, bonus: s.bonus, score: s.score } : null;
+      }).filter(Boolean) as { gamePlayerId: string; bid: number; tricks: number; bonus: number; score: number }[];
+      await submitRoundScore(gameId, editRound, scoresToSubmit);
+    }
+
+    setEditingCell(null);
+    router.refresh();
   };
 
   const startScoring = () => {
@@ -122,23 +183,75 @@ export default function GameInterface({
   };
 
   const renderCell = (roundNum: number, playerId: string, isDesktop: boolean = false) => {
-    // Past Rounds
+    // Past Rounds - Now with clickable sub-elements
     if (roundNum < round) {
       const r = historyState.find(h => h.roundNumber === roundNum);
       const s = r?.playerScores[playerId];
       if (!s) return <td key={playerId}>-</td>;
+
+      const isEditingBid = editingCell?.round === roundNum && editingCell?.playerId === playerId && editingCell?.field === 'bid';
+      const isEditingTricks = editingCell?.round === roundNum && editingCell?.playerId === playerId && editingCell?.field === 'tricks';
+      const isEditingBonus = editingCell?.round === roundNum && editingCell?.playerId === playerId && editingCell?.field === 'bonus';
+
       return (
         <td key={playerId} className={styles.pastCell}>
           <div className={styles.cellScore}>{s.score}</div>
-          {isDesktop ? (
-            <div className={styles.cellDetail}>{s.bid}|{s.tricks}{s.bonus !== 0 && `+${s.bonus}`}</div>
-          ) : (
-            <div className={styles.mobileCellDetail}>
-              <div>Pari: {s.bid}</div>
-              <div>Plis: {s.tricks}</div>
-              {s.bonus !== 0 && <div>Bonus: {s.bonus}</div>}
+          <div className={styles.cellSubElements}>
+            <div
+              className={styles.editableField}
+              onClick={() => startInlineEdit(roundNum, playerId, 'bid')}
+            >
+              {isEditingBid ? (
+                <input
+                  type="number"
+                  value={editValue}
+                  onChange={e => setEditValue(parseInt(e.target.value) || 0)}
+                  onBlur={saveInlineEdit}
+                  onKeyDown={e => e.key === 'Enter' && saveInlineEdit()}
+                  autoFocus
+                  className={styles.inlineInput}
+                />
+              ) : (
+                <span>Pari: {s.bid}</span>
+              )}
             </div>
-          )}
+            <div
+              className={styles.editableField}
+              onClick={() => startInlineEdit(roundNum, playerId, 'tricks')}
+            >
+              {isEditingTricks ? (
+                <input
+                  type="number"
+                  value={editValue}
+                  onChange={e => setEditValue(parseInt(e.target.value) || 0)}
+                  onBlur={saveInlineEdit}
+                  onKeyDown={e => e.key === 'Enter' && saveInlineEdit()}
+                  autoFocus
+                  className={styles.inlineInput}
+                />
+              ) : (
+                <span>Plis: {s.tricks}</span>
+              )}
+            </div>
+            <div
+              className={styles.editableField}
+              onClick={() => startInlineEdit(roundNum, playerId, 'bonus')}
+            >
+              {isEditingBonus ? (
+                <input
+                  type="number"
+                  value={editValue}
+                  onChange={e => setEditValue(parseInt(e.target.value) || 0)}
+                  onBlur={saveInlineEdit}
+                  onKeyDown={e => e.key === 'Enter' && saveInlineEdit()}
+                  autoFocus
+                  className={styles.inlineInput}
+                />
+              ) : (
+                <span>Bonus: {s.bonus}</span>
+              )}
+            </div>
+          </div>
         </td>
       );
     }
@@ -155,10 +268,24 @@ export default function GameInterface({
               </>
             ) : (
               <>
-                <div className={styles.lockedBid}>Pari: {currentBids[playerId] || 0}</div>
-                <div className={styles.tricksLabel}>Plis:</div>
+                <div className={styles.lockedBid}>Pari demandé: {currentBids[playerId] || 0}</div>
+                <div className={styles.tricksLabel}>Plis effectués:</div>
                 <NumberSelector value={currentTricks[playerId]} onChange={(val) => handleTricksChange(playerId, val)} max={round + 1} />
-                <input type="number" value={currentBonus[playerId] ?? ''} onChange={e => handleBonusChange(playerId, parseInt(e.target.value) || 0)} className={styles.inputBonus} placeholder="+ Bonus" />
+                <div className={styles.bonusInputWrapper}>
+                  <div className={styles.bonusQuickBtns}>
+                    {[-20, -10, 10, 20, 30, 40, 50, 60].map(val => (
+                      <button
+                        key={val}
+                        type="button"
+                        className={`${styles.bonusBtn} ${val < 0 ? styles.bonusBtnNegative : styles.bonusBtnPositive} ${currentBonus[playerId] === val ? styles.bonusBtnActive : ''}`}
+                        onClick={() => handleBonusChange(playerId, val)}
+                      >
+                        {val > 0 ? `+${val}` : val}
+                      </button>
+                    ))}
+                  </div>
+                  <input type="number" value={currentBonus[playerId] ?? ''} onChange={e => handleBonusChange(playerId, parseInt(e.target.value) || 0)} className={styles.inputBonus} placeholder="+ Bonus" />
+                </div>
               </>
             )}
           </div>
@@ -205,10 +332,24 @@ export default function GameInterface({
                     </div>
                   ) : (
                     <div className={styles.inputRow}>
-                      <div className={styles.cardLockedBid}>Pari: {currentBids[p.gamePlayerId] || 0}</div>
-                      <div className={styles.tricksLabel}>Plis:</div>
+                      <div className={styles.cardLockedBid}>Pari demandé: {currentBids[p.gamePlayerId] || 0}</div>
+                      <div className={styles.tricksLabel}>Plis effectués:</div>
                       <NumberSelector value={currentTricks[p.gamePlayerId]} onChange={(val) => handleTricksChange(p.gamePlayerId, val)} max={round + 1} />
-                      <input type="number" value={currentBonus[p.gamePlayerId] ?? ''} onChange={e => handleBonusChange(p.gamePlayerId, parseInt(e.target.value) || 0)} className={styles.inputBonus} placeholder="+ Bonus" />
+                      <div className={styles.bonusInputWrapper}>
+                        <div className={styles.bonusQuickBtns}>
+                          {[-20, -10, 10, 20, 30, 40, 50, 60].map(val => (
+                            <button
+                              key={val}
+                              type="button"
+                              className={`${styles.bonusBtn} ${val < 0 ? styles.bonusBtnNegative : styles.bonusBtnPositive} ${currentBonus[p.gamePlayerId] === val ? styles.bonusBtnActive : ''}`}
+                              onClick={() => handleBonusChange(p.gamePlayerId, val)}
+                            >
+                              {val > 0 ? `+${val}` : val}
+                            </button>
+                          ))}
+                        </div>
+                        <input type="number" value={currentBonus[p.gamePlayerId] ?? ''} onChange={e => handleBonusChange(p.gamePlayerId, parseInt(e.target.value) || 0)} className={styles.inputBonus} placeholder="+ Bonus" />
+                      </div>
                     </div>
                   )}
                 </div>
@@ -241,31 +382,96 @@ export default function GameInterface({
       )}
 
       {/* DESKTOP/GAME OVER TABLE (Standard Orientation) */}
+      {isGameOver && <img src="/assets/pirate-treasure.png" alt="Treasure" className={styles.desktopTreasure} />}
       <div className={`${styles.scorepadContainer} ${!isGameOver ? styles.desktopHistory : styles.gameOverMobile}`}>
         <table className={styles.scorepad}>
           <thead>
             <tr>
               <th className={styles.roundCol}>#</th>
-              {players.map(p => (
-                <th key={p.gamePlayerId} className={styles.playerCol}>
-                  {p.name}
-                  <div className={styles.totalScore}>
-                    {totals.find(t => t.id === p.gamePlayerId)?.score || 0}
-                  </div>
-                </th>
-              ))}
+              {(() => {
+                const topScore = Math.max(...totals.map(t => t.score));
+                // Sort players by score when game is over
+                const sortedPlayers = isGameOver
+                  ? [...players].sort((a, b) => {
+                    const aScore = totals.find(t => t.id === a.gamePlayerId)?.score || 0;
+                    const bScore = totals.find(t => t.id === b.gamePlayerId)?.score || 0;
+                    return bScore - aScore;
+                  })
+                  : players;
+                return sortedPlayers.map(p => {
+                  const playerScore = totals.find(t => t.id === p.gamePlayerId)?.score || 0;
+                  const isWinner = isGameOver && playerScore === topScore;
+                  return (
+                    <th key={p.gamePlayerId} className={`${styles.playerCol} ${isWinner ? styles.winnerCol : ''}`}>
+                      {isWinner && <span className={styles.crownIcon}>👑</span>}
+                      {p.name}
+                      <div className={styles.totalScore}>
+                        {playerScore}
+                      </div>
+                    </th>
+                  );
+                });
+              })()}
             </tr>
           </thead>
           <tbody>
-            {Array.from({ length: 10 }, (_, i) => i + 1).map(rNum => (
-              <tr key={rNum} className={rNum === round ? styles.activeRow : ''}>
-                <td className={styles.roundNum}>{rNum}</td>
-                {players.map(p => renderCell(rNum, p.gamePlayerId, true))}
-              </tr>
-            ))}
+            {Array.from({ length: 10 }, (_, i) => i + 1).map(rNum => {
+              // Sort players by score when game is over
+              const sortedPlayers = isGameOver
+                ? [...players].sort((a, b) => {
+                  const aScore = totals.find(t => t.id === a.gamePlayerId)?.score || 0;
+                  const bScore = totals.find(t => t.id === b.gamePlayerId)?.score || 0;
+                  return bScore - aScore;
+                })
+                : players;
+              return (
+                <tr key={rNum} className={rNum === round ? styles.activeRow : ''}>
+                  <td className={styles.roundNum}>{rNum}</td>
+                  {sortedPlayers.map(p => renderCell(rNum, p.gamePlayerId, true))}
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
+
+      {/* MOBILE FINAL SCORES (Card-based for readability) */}
+      {isGameOver && (
+        <div className={styles.mobileFinalSection}>
+          <h2 className={styles.mobileFinalTitle}>🏴‍☠️ Classement Final</h2>
+          <img src="/assets/pirate-treasure.png" alt="Treasure" className={styles.treasureIcon} />
+          <div className={styles.finalPlayerCards}>
+            {(() => {
+              const sorted = [...totals].sort((a, b) => b.score - a.score);
+              const topScore = sorted[0]?.score || 0;
+              return sorted.map((t, idx) => {
+                const player = players.find(p => p.gamePlayerId === t.id);
+                const isWinner = t.score === topScore;
+                return (
+                  <div key={t.id} className={`glass ${styles.finalPlayerCard} ${isWinner ? styles.winner : ''}`}>
+                    <div className={styles.finalRank}>{isWinner ? '👑' : `#${idx + 1}`}</div>
+                    <div className={styles.finalPlayerInfo}>
+                      <div className={styles.finalPlayerName}>{player?.name}</div>
+                      <div className={styles.finalPlayerScore}>{t.score} pts</div>
+                    </div>
+                    <div className={styles.finalPlayerHistory}>
+                      {historyState.map(h => {
+                        const s = h.playerScores[t.id];
+                        return s ? (
+                          <div key={h.roundNumber} className={styles.historyChip}>
+                            <span className={styles.historyRound}>M{h.roundNumber}</span>
+                            <span className={s.score >= 0 ? styles.historyPositive : styles.historyNegative}>{s.score > 0 ? '+' : ''}{s.score}</span>
+                          </div>
+                        ) : null;
+                      })}
+                    </div>
+                  </div>
+                );
+              });
+            })()}
+          </div>
+        </div>
+      )}
 
       {!isGameOver && (
         <div className={styles.stickyControls}>
@@ -277,7 +483,7 @@ export default function GameInterface({
 
       {isGameOver && (
         <div className={styles.finalControls}>
-          {showVictory && <VictoryModal winnerName={winnerName} onClose={() => setShowVictory(false)} />}
+          {showVictory && <VictoryModal winnerName={winnerNames} onClose={() => setShowVictory(false)} />}
           <h2>Partie Terminée !</h2>
           <Link href="/leaderboard" className={styles.actionBtn}>Voir Classement</Link>
         </div>

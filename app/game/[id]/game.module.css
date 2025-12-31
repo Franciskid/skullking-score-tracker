@@ -144,22 +144,22 @@
   display: block;
 }
 
-/* New: Game Over Table on Mobile */
+/* Game Over Table - Visible on desktop, styled for mobile */
 .gameOverMobile {
-  display: none;
+  display: block;
+  max-height: none;
 }
 
 /* Scorepad Table General */
 .scorepadContainer {
-  /* flex: 1; removed to prevent stretching empty space */
   overflow: auto;
   background-color: #e3dcd2;
   background-image: linear-gradient(rgba(245, 240, 220, 0.9), rgba(245, 240, 220, 0.9)), url('/assets/old-map.png');
   background-size: cover;
   border: 4px solid #3e2723;
   border-radius: 4px;
-  height: fit-content;
-  /* Only take needed space */
+  max-height: calc(100vh - 220px);
+  /* Enable sticky header */
 }
 
 .scorepad {
@@ -202,20 +202,58 @@
   z-index: 5;
   color: #e3dcd2;
   border-right: 2px solid #5d4037;
+  font-size: 0.9rem;
+  /* Smaller */
+  padding: 0.4rem;
 }
 
 .playerCol {
-  min-width: 160px;
+  min-width: 120px;
+  font-size: 0.85rem;
+  /* Smaller player name */
+  padding: 0.4rem;
+}
+
+.totalScore {
+  color: #fff;
+  font-size: 1.2rem;
+  font-weight: 800;
+  margin-top: 2px;
+}
+
+.winnerCol {
+  background: linear-gradient(135deg, rgba(139, 101, 8, 0.9), rgba(62, 39, 35, 0.85)) !important;
+  box-shadow: inset 0 0 20px rgba(255, 215, 0, 0.3);
+}
+
+.crownIcon {
+  display: block;
+  font-size: 1.2rem;
+  margin-bottom: 2px;
+}
+
+.desktopTreasure {
+  display: block;
+  margin: 0 auto -20px auto;
+  width: 120px;
+  height: auto;
+  animation: bounce 1.5s ease-in-out infinite;
+  position: relative;
+  z-index: 10;
 }
 
 .cellScore {
   font-weight: 800;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   color: #8a0303;
+  text-align: center;
+  padding: 2px 0;
+  border-bottom: 1px dashed rgba(62, 39, 35, 0.3);
+  margin-bottom: 4px;
 }
 
 .lockedBid {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: #1a1a1a;
   text-transform: uppercase;
   font-weight: 800;
@@ -223,7 +261,7 @@
 }
 
 .tricksLabel {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: #1a1a1a;
   text-transform: uppercase;
   margin-bottom: -4px;
@@ -232,12 +270,66 @@
 }
 
 .cellDetail {
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   color: #5d4037;
 }
 
-.mobileCellDetail {
+/* Pirate-themed cell sub-elements grid */
+.cellSubElements {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  font-size: 0.75rem;
+}
+
+.editableField {
+  cursor: pointer;
+  padding: 4px 2px;
+  background: rgba(62, 39, 35, 0.08);
+  border-radius: 2px;
+  border: 1px solid rgba(62, 39, 35, 0.15);
+  transition: all 0.15s;
+  text-align: center;
+  font-weight: 700;
+  color: #3e2723;
+}
+
+.editableField:hover {
+  background: rgba(138, 3, 3, 0.2);
+  border-color: #8a0303;
+  transform: scale(1.02);
+}
+
+.editableField span {
+  display: block;
+  font-size: 0.65rem;
+  color: #5d4037;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.editableField span::after {
+  content: '';
+  display: block;
+  font-size: 0.9rem;
+  color: #3e2723;
+  font-weight: 800;
+}
+
+.inlineInput {
+  width: 100%;
+  padding: 2px;
   font-size: 0.85rem;
+  font-family: var(--font-cinzel);
+  font-weight: 700;
+  border: 2px solid #8a0303;
+  border-radius: 2px;
+  text-align: center;
+  background: #fff;
+}
+
+.mobileCellDetail {
+  font-size: 0.8rem;
   color: #5d4037;
   display: flex;
   flex-direction: column;
@@ -251,30 +343,105 @@
   font-weight: 800;
 }
 
-/* Inputs styling */
-.inputBonus {
+/* Bonus Input with Inline Quick Buttons */
+.bonusInputWrapper {
+  display: flex;
+  flex-direction: column;
   background: rgba(255, 255, 255, 0.7);
   border: 1px solid #5d4037;
-  padding: 0.6rem;
   border-radius: 4px;
+  width: 100%;
+  overflow: hidden;
+}
+
+.bonusQuickBtns {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2px;
+  padding: 4px;
+  background: rgba(62, 39, 35, 0.03);
+  border-bottom: 1px solid rgba(93, 64, 55, 0.15);
+}
+
+.bonusBtn {
+  padding: 3px 2px;
+  font-size: 0.6rem;
+  font-family: var(--font-cinzel);
+  font-weight: 700;
+  background: rgba(212, 175, 55, 0.15);
+  color: #5d4037;
+  border: 1px solid rgba(138, 109, 27, 0.3);
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.bonusBtn:hover {
+  background: rgba(212, 175, 55, 0.4);
+  border-color: #8a6d1b;
+  color: #3e2723;
+}
+
+.bonusBtnActive {
+  background: rgba(138, 3, 3, 0.2);
+  color: #8a0303;
+  border-color: #8a0303;
+  font-weight: 800;
+}
+
+.bonusBtnPositive {
+  background: rgba(39, 174, 96, 0.12);
+  color: #1e8449;
+  border-color: rgba(39, 174, 96, 0.3);
+}
+
+.bonusBtnPositive:hover {
+  background: rgba(39, 174, 96, 0.25);
+  border-color: #27ae60;
+}
+
+.bonusBtnNegative {
+  background: rgba(192, 57, 43, 0.12);
+  color: #a93226;
+  border-color: rgba(192, 57, 43, 0.3);
+}
+
+.bonusBtnNegative:hover {
+  background: rgba(192, 57, 43, 0.25);
+  border-color: #c0392b;
+}
+
+/* Inputs styling */
+.inputBonus {
+  background: transparent;
+  border: none;
+  padding: 0.4rem;
   color: #1a1a1a;
   font-family: var(--font-cinzel);
   font-weight: 800;
   width: 100%;
-  min-width: 80px;
   text-align: center;
 }
 
 .inputBonus:focus {
+  outline: none;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.bonusInputWrapper:focus-within {
   outline: 2px solid #8a0303;
   background: #fff;
 }
 
-/* Sticky Controls */
+/* Sticky Controls - DESKTOP */
 .stickyControls {
   display: flex;
   justify-content: center;
   padding: 1rem 0;
+  position: sticky;
+  bottom: 1rem;
+  z-index: 100;
 }
 
 .finalControls {
@@ -295,6 +462,117 @@
   font-size: 1.3rem;
   border: 2px solid var(--gold);
   box-shadow: 4px 4px 0 #000;
+}
+
+/* Mobile Final Scores Section */
+.mobileFinalSection {
+  display: none;
+}
+
+.mobileFinalTitle {
+  font-family: var(--font-cinzel);
+  color: var(--gold);
+  text-align: center;
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.treasureIcon {
+  display: block;
+  margin: 0 auto 1rem auto;
+  width: 80px;
+  height: auto;
+  animation: bounce 1.5s ease-in-out infinite;
+}
+
+@keyframes bounce {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.finalPlayerCards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.finalPlayerCard {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border: 2px solid #5d4037;
+  background: rgba(62, 39, 35, 0.85);
+}
+
+.finalPlayerCard.winner {
+  border: 3px solid var(--gold);
+  background: linear-gradient(135deg, rgba(139, 101, 8, 0.95), rgba(62, 39, 35, 0.9));
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.4), inset 0 0 30px rgba(255, 215, 0, 0.15);
+}
+
+.finalRank {
+  font-family: var(--font-cinzel);
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--gold);
+  min-width: 40px;
+}
+
+.finalPlayerInfo {
+  flex: 1;
+}
+
+.finalPlayerName {
+  font-family: var(--font-cinzel);
+  font-weight: 800;
+  color: #e3dcd2;
+  font-size: 1rem;
+}
+
+.finalPlayerScore {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--gold);
+}
+
+.finalPlayerHistory {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  max-width: 50%;
+}
+
+.historyChip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2px 4px;
+  background: rgba(62, 39, 35, 0.1);
+  border-radius: 3px;
+  font-size: 0.65rem;
+}
+
+.historyRound {
+  color: #5d4037;
+  font-weight: 600;
+}
+
+.historyPositive {
+  color: #27ae60;
+  font-weight: 800;
+}
+
+.historyNegative {
+  color: #8a0303;
+  font-weight: 800;
 }
 
 /* Media Queries for Mobile Flow */
@@ -323,8 +601,13 @@
   }
 
   .gameOverMobile {
+    display: none;
+    /* Hide desktop table on mobile when game is over */
+  }
+
+  .mobileFinalSection {
     display: block;
-    /* Show vertical orientation when game over */
+    /* Show card-based layout on mobile */
   }
 
   .scorepad th,

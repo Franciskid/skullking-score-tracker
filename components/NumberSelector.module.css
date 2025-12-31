@@ -1,6 +1,7 @@
 .container {
   display: flex;
-  justify-content: center;
+  justify-content: safe center;
+  /* Center when fits, left-align when overflow */
   flex-wrap: nowrap;
   gap: 8px;
   overflow-x: auto;
