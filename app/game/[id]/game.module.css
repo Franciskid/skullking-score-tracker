@@ -236,6 +236,16 @@
   color: #5d4037;
 }
 
+.mobileCellDetail {
+  font-size: 0.85rem;
+  color: #5d4037;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
 .bonus {
   color: #27ae60;
   font-weight: 800;
@@ -319,18 +329,28 @@
 
   .scorepad th,
   .scorepad td {
-    padding: 0.4rem 0.1rem;
-    font-size: 0.75rem;
+    padding: 0.8rem;
+    /* Increased padding */
+    font-size: 1rem;
+    /* Increased font */
   }
 
-  .playerCol {
-    min-width: 75px;
-    /* Narrow vertical orientation for game over */
-  }
-
+  /* Fixed first column (Player Name in mobile view) */
   .roundNum {
-    min-width: 60px;
-    font-size: 0.8rem;
+    min-width: 100px;
+    /* Ensure width */
+    font-size: 0.9rem;
+    z-index: 50;
+    /* Higher z-index to stay above scrolled content */
+    background: #3e2723;
+    /* Ensure solid background */
+    left: 0;
+    position: sticky;
+  }
+
+  .roundCol {
+    z-index: 60;
+    /* Header corner even higher */
   }
 
   /* Sticky FAB Style */

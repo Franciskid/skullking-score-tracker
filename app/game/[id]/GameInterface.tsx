@@ -130,7 +130,15 @@ export default function GameInterface({
       return (
         <td key={playerId} className={styles.pastCell}>
           <div className={styles.cellScore}>{s.score}</div>
-          <div className={styles.cellDetail}>{s.bid}|{s.tricks}{s.bonus !== 0 && `+${s.bonus}`}</div>
+          {isDesktop ? (
+            <div className={styles.cellDetail}>{s.bid}|{s.tricks}{s.bonus !== 0 && `+${s.bonus}`}</div>
+          ) : (
+            <div className={styles.mobileCellDetail}>
+              <div>Pari: {s.bid}</div>
+              <div>Plis: {s.tricks}</div>
+              {s.bonus !== 0 && <div>Bonus: {s.bonus}</div>}
+            </div>
+          )}
         </td>
       );
     }
@@ -148,6 +156,7 @@ export default function GameInterface({
             ) : (
               <>
                 <div className={styles.lockedBid}>Pari: {currentBids[playerId] || 0}</div>
+                <div className={styles.tricksLabel}>Plis:</div>
                 <NumberSelector value={currentTricks[playerId]} onChange={(val) => handleTricksChange(playerId, val)} max={round + 1} />
                 <input type="number" value={currentBonus[playerId] ?? ''} onChange={e => handleBonusChange(playerId, parseInt(e.target.value) || 0)} className={styles.inputBonus} placeholder="+ Bonus" />
               </>
@@ -197,6 +206,7 @@ export default function GameInterface({
                   ) : (
                     <div className={styles.inputRow}>
                       <div className={styles.cardLockedBid}>Pari: {currentBids[p.gamePlayerId] || 0}</div>
+                      <div className={styles.tricksLabel}>Plis:</div>
                       <NumberSelector value={currentTricks[p.gamePlayerId]} onChange={(val) => handleTricksChange(p.gamePlayerId, val)} max={round + 1} />
                       <input type="number" value={currentBonus[p.gamePlayerId] ?? ''} onChange={e => handleBonusChange(p.gamePlayerId, parseInt(e.target.value) || 0)} className={styles.inputBonus} placeholder="+ Bonus" />
                     </div>
