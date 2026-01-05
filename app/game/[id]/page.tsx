@@ -16,10 +16,9 @@ export default async function GamePage({ params }: { params: Promise<{ id: strin
       players (name)
     `)
     .eq('game_id', id)
-    .order('created_at', { ascending: true }); // Ensure consistent order
+    .order('created_at', { ascending: true });
 
   if (error || !gamePlayers || gamePlayers.length === 0) {
-    // console.error("Game Load Error:", error);
     notFound();
   }
 
@@ -47,33 +46,55 @@ export default async function GamePage({ params }: { params: Promise<{ id: strin
     total: gp.total_score
   }));
 
-  // Create a map of roundNumber -> playerScores
-  const history = (roundsData || []).map((r: any) => {
-    const scoreMap: Record<string, any> = {};
-    r.scores.forEach((s: any) => {
-      scoreMap[s.game_player_id] = {
-        bid: s.bid,
-        tricks: s.tricks_won,
-        bonus: s.bonus_points,
-        score: s.round_score
-      };
-    });
-    return {
-      roundId: r.id,
-      roundNumber: r.round_number,
-      playerScores: scoreMap
-    };
-  });
+  // Separate completed rounds from pending (bids entered, no tricks yet)
+  const completedRounds: any[] = [];
+  let pendingRoundData: { roundNumber: number; bids: Record<string, number> } | null = null;
 
-  // Calculate current round number based on completed rounds
-  const currentRound = (roundsData?.length || 0) + 1;
+  for (const r of (roundsData || [])) {
+    // Check if any score has null tricks_won (indicates pending)
+    const hasPending = (r as any).scores.some((s: any) => s.tricks_won === null);
+
+    if (hasPending) {
+      // This is a pending round - extract bids
+      const bidsMap: Record<string, number> = {};
+      (r as any).scores.forEach((s: any) => {
+        bidsMap[s.game_player_id] = s.bid;
+      });
+      pendingRoundData = { roundNumber: (r as any).round_number, bids: bidsMap };
+    } else {
+      // Completed round
+      const scoreMap: Record<string, any> = {};
+      (r as any).scores.forEach((s: any) => {
+        scoreMap[s.game_player_id] = {
+          bid: s.bid,
+          tricks: s.tricks_won,
+          bonus: s.bonus_points,
+          score: s.round_score
+        };
+      });
+      completedRounds.push({
+        roundId: (r as any).id,
+        roundNumber: (r as any).round_number,
+        playerScores: scoreMap
+      });
+    }
+  }
+
+  // Current round is: pending round number if exists, else completed + 1
+  const currentRound = pendingRoundData !== null ? pendingRoundData.roundNumber : completedRounds.length + 1;
+  // Initial phase is SCORING if we have a pending round (bids saved), else BIDDING
+  const initialPhase = pendingRoundData !== null ? 'SCORING' as const : 'BIDDING' as const;
+  // Initial bids from pending round
+  const initialBids = pendingRoundData !== null ? pendingRoundData.bids : {};
 
   return (
     <GameInterface
       gameId={id}
       players={players}
-      history={history}
+      history={completedRounds}
       currentRoundNumber={currentRound}
+      initialPhase={initialPhase}
+      initialBids={initialBids}
     />
   );
 }

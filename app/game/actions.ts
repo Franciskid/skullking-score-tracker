@@ -78,6 +78,65 @@ export async function createNewGame(playerNames: string[]) {
   return game.id;
 }
 
+// Save bids during bidding phase - creates round with bids, tricks_won = null
+export async function saveBids(
+  gameId: string,
+  roundNumber: number,
+  bids: { gamePlayerId: string, bid: number }[]
+) {
+  const supabase = await createClient();
+
+  // Check if round already exists
+  let { data: existingRound } = await supabase
+    .from('rounds')
+    .select('id')
+    .eq('game_id', gameId)
+    .eq('round_number', roundNumber)
+    .single();
+
+  let roundId: string;
+
+  if (existingRound) {
+    roundId = existingRound.id;
+    // Update existing scores
+    for (const b of bids) {
+      await supabase
+        .from('scores')
+        .upsert({
+          round_id: roundId,
+          game_player_id: b.gamePlayerId,
+          bid: b.bid,
+          tricks_won: null,  // null means bids entered but round not finished
+          bonus_points: 0,
+          round_score: 0
+        }, { onConflict: 'round_id,game_player_id' });
+    }
+  } else {
+    // Create new round
+    const { data: newRound, error } = await supabase
+      .from('rounds')
+      .insert({ game_id: gameId, round_number: roundNumber })
+      .select()
+      .single();
+
+    if (error || !newRound) throw new Error("Failed to create round");
+    roundId = newRound.id;
+
+    // Insert scores with bids only
+    for (const b of bids) {
+      await supabase.from('scores').insert({
+        round_id: roundId,
+        game_player_id: b.gamePlayerId,
+        bid: b.bid,
+        tricks_won: null,  // null means bids entered but round not finished
+        bonus_points: 0,
+        round_score: 0
+      });
+    }
+  }
+
+  return { success: true, roundId };
+}
 export async function submitRoundScore(
   gameId: string,
   roundNumber: number,
@@ -85,60 +144,89 @@ export async function submitRoundScore(
 ) {
   const supabase = await createClient();
 
-  // 1. Create Round
-  const { data: round, error: roundError } = await supabase
+  // 1. Check if round already exists (from saveBids)
+  let { data: existingRound } = await supabase
     .from('rounds')
-    .insert({ game_id: gameId, round_number: roundNumber })
-    .select()
+    .select('id')
+    .eq('game_id', gameId)
+    .eq('round_number', roundNumber)
     .single();
 
-  if (roundError || !round) throw new Error("Failed to create round");
+  let roundId: string;
 
-  // 2. Insert Scores & Update Totals
-  for (const p of playerScores) {
-    // Insert Score
-    await supabase.from('scores').insert({
-      game_player_id: p.gamePlayerId,
-      round_id: round.id,
-      bid: p.bid,
-      tricks_won: p.tricks,
-      bonus_points: p.bonus,
-      round_score: p.score
-    });
+  if (existingRound) {
+    // Round exists from bids - update existing scores
+    roundId = existingRound.id;
+    for (const p of playerScores) {
+      // Update existing score row
+      await supabase
+        .from('scores')
+        .update({
+          bid: p.bid,
+          tricks_won: p.tricks,
+          bonus_points: p.bonus,
+          round_score: p.score
+        })
+        .eq('round_id', roundId)
+        .eq('game_player_id', p.gamePlayerId);
 
-    // Update Total in game_players (atomic increment ideally, but read-update is ok for MVP)
-    // Actually we can use rpc or just fetch-update.
-    // Let's just use SQL helper or simple update.
-    // We need current total.
-        const { data: gp } = await supabase.from('game_players').select('total_score').eq('id', p.gamePlayerId).single();
-        if (gp) {
-          await supabase.from('game_players').update({ total_score: gp.total_score + p.score }).eq('id', p.gamePlayerId);
-        }
+      // Update total (since previous round_score was 0)
+      const { data: gp } = await supabase.from('game_players').select('total_score').eq('id', p.gamePlayerId).single();
+      if (gp) {
+        await supabase.from('game_players').update({ total_score: gp.total_score + p.score }).eq('id', p.gamePlayerId);
       }
-    
-      // 3. If Round 10 is finished, mark game as finished
-      if (roundNumber === 10) {
-        // Find winner
-        const { data: allPlayers } = await supabase
-          .from('game_players')
-          .select('player_id, total_score')
-          .eq('game_id', gameId)
-          .order('total_score', { ascending: false });
-        
-        if (allPlayers && allPlayers.length > 0) {
-          await supabase
-            .from('games')
-            .update({ 
-              status: 'finished',
-              winner_id: allPlayers[0].player_id 
-            })
-            .eq('id', gameId);
-        }
-      }
-      
-      return { success: true };
     }
-    
+  } else {
+    // Create new round
+    const { data: newRound, error: roundError } = await supabase
+      .from('rounds')
+      .insert({ game_id: gameId, round_number: roundNumber })
+      .select()
+      .single();
+
+    if (roundError || !newRound) throw new Error("Failed to create round");
+    roundId = newRound.id;
+
+    // Insert Scores & Update Totals
+    for (const p of playerScores) {
+      await supabase.from('scores').insert({
+        game_player_id: p.gamePlayerId,
+        round_id: roundId,
+        bid: p.bid,
+        tricks_won: p.tricks,
+        bonus_points: p.bonus,
+        round_score: p.score
+      });
+
+      const { data: gp } = await supabase.from('game_players').select('total_score').eq('id', p.gamePlayerId).single();
+      if (gp) {
+        await supabase.from('game_players').update({ total_score: gp.total_score + p.score }).eq('id', p.gamePlayerId);
+      }
+    }
+  }
+
+  // 3. If Round 10 is finished, mark game as finished
+  if (roundNumber === 10) {
+    const { data: allPlayers } = await supabase
+      .from('game_players')
+      .select('player_id, total_score')
+      .eq('game_id', gameId)
+      .order('total_score', { ascending: false });
+
+    if (allPlayers && allPlayers.length > 0) {
+      await supabase
+        .from('games')
+        .update({
+          status: 'finished',
+          winner_id: allPlayers[0].player_id
+        })
+        .eq('id', gameId);
+    }
+  }
+
+  return { success: true };
+}
+
 
 export async function updateRoundScore(
   gameId: string,
@@ -148,53 +236,62 @@ export async function updateRoundScore(
   const supabase = await createClient();
 
   // 1. Get Round ID
-  const { data: round } = await supabase
+  const { data: round, error: roundError } = await supabase
     .from('rounds')
     .select('id')
     .eq('game_id', gameId)
     .eq('round_number', roundNumber)
     .single();
 
-  if (!round) throw new Error("Round not found");
+  if (roundError || !round) {
+    console.error('Round not found:', roundError);
+    throw new Error("Round not found");
+  }
 
   // 2. Update Scores
-  // We need to calculate the difference in total score to update the total correctly?
-  // Or just recalculate total from scratch? Recalculating totals is safer but expensive.
-  // For MVP: Let's fetch old scores, subtract them from total, add new scores.
-
-  // Actually, easiest way: Just update the specific score rows.
-  // And to fix totals: Recalculate all totals for the game? 
-  // Let's just do atomic update per player: New Total = Old Total - Old Round Score + New Round Score.
-
   for (const p of playerScores) {
-    // Get old score
-    const { data: oldScore } = await supabase
+    const { data: oldScoreRow } = await supabase
       .from('scores')
-      .select('round_score')
+      .select('id')
       .eq('round_id', round.id)
       .eq('game_player_id', p.gamePlayerId)
       .single();
 
-    const oldVal = oldScore?.round_score || 0;
-    const diff = p.score - oldVal;
-
-    // Upsert Score (Update)
-    await supabase.from('scores').upsert({
-      round_id: round.id,
-      game_player_id: p.gamePlayerId,
-      bid: p.bid,
-      tricks_won: p.tricks,
-      bonus_points: p.bonus,
-      round_score: p.score
-    }, { onConflict: 'round_id,game_player_id' }); // Schema has unique constraint? verify
-
-    // Update Total
-    if (diff !== 0) {
-      const { data: gp } = await supabase.from('game_players').select('total_score').eq('id', p.gamePlayerId).single();
-      if (gp) {
-        await supabase.from('game_players').update({ total_score: gp.total_score + diff }).eq('id', p.gamePlayerId);
-      }
+    if (!oldScoreRow) {
+      console.error('Score row not found for player:', p.gamePlayerId);
+      continue;
     }
+
+    // Update Score using the score row ID
+    const { error: updateError } = await supabase
+      .from('scores')
+      .update({
+        bid: p.bid,
+        tricks_won: p.tricks,
+        bonus_points: p.bonus,
+        round_score: p.score
+      })
+      .eq('id', oldScoreRow.id);
+
+    if (updateError) {
+      console.error('Error updating score:', updateError);
+    }
+  }
+
+  // 3. Recalculate total scores from scratch for all players in this game
+  for (const p of playerScores) {
+    // Get ALL scores for this player in this game
+    const { data: allScores } = await supabase
+      .from('scores')
+      .select('round_score')
+      .eq('game_player_id', p.gamePlayerId);
+
+    const totalScore = allScores?.reduce((sum, s) => sum + (s.round_score || 0), 0) || 0;
+
+    await supabase
+      .from('game_players')
+      .update({ total_score: totalScore })
+      .eq('id', p.gamePlayerId);
   }
 
   return { success: true };
@@ -215,27 +312,27 @@ export async function resetGame(gameId: string) {
     .update({ total_score: 0 })
     .eq('game_id', gameId);
 
-    
 
-    return { success: true };
 
-  }
+  return { success: true };
 
-  
+}
 
-  export async function getAvailablePlayers() {
 
-    const supabase = await createClient();
 
-    
+export async function getAvailablePlayers() {
 
-    // Fetch players and their game history
+  const supabase = await createClient();
 
-    const { data: players } = await supabase
 
-      .from('players')
 
-      .select(`
+  // Fetch players and their game history
+
+  const { data: players } = await supabase
+
+    .from('players')
+
+    .select(`
 
         id, 
 
@@ -251,38 +348,38 @@ export async function resetGame(gameId: string) {
 
       `);
 
-  
 
-    if (!players) return [];
 
-  
+  if (!players) return [];
 
-    // Calculate stats
 
-    // We need to know if they won. This is expensive without a dedicated stats table/view.
 
-    // For MVP, we'll just count games played and total score. 
+  // Calculate stats
 
-    // Wins calculation requires checking all other players in those games.
+  // We need to know if they won. This is expensive without a dedicated stats table/view.
 
-    // Let's simplified: just return Games Played and Total Score.
+  // For MVP, we'll just count games played and total score. 
 
-    
+  // Wins calculation requires checking all other players in those games.
 
-    return players.map(p => ({
+  // Let's simplified: just return Games Played and Total Score.
 
-      id: p.id,
 
-      name: p.name,
 
-      gamesPlayed: p.game_players.length,
+  return players.map(p => ({
 
-      totalScore: p.game_players.reduce((sum, gp) => sum + (gp.total_score || 0), 0)
+    id: p.id,
 
-    })).sort((a, b) => b.gamesPlayed - a.gamesPlayed);
+    name: p.name,
 
-  }
+    gamesPlayed: p.game_players.length,
 
-  
+    totalScore: p.game_players.reduce((sum, gp) => sum + (gp.total_score || 0), 0)
 
-  
+  })).sort((a, b) => b.gamesPlayed - a.gamesPlayed);
+
+}
+
+
+
+

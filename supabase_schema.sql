@@ -39,7 +39,7 @@ create table if not exists scores (
   round_id uuid references rounds(id) on delete cascade not null,
   game_player_id uuid references game_players(id) on delete cascade not null,
   bid int default 0,
-  tricks_won int default 0,
+  tricks_won int,
   bonus_points int default 0,
   round_score int default 0,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,

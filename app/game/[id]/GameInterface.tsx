@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { calculateRoundScore } from '@/lib/scoring';
-import { submitRoundScore, resetGame } from '../actions';
+import { submitRoundScore, updateRoundScore, resetGame, saveBids } from '../actions';
 import styles from './game.module.css';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -25,26 +25,30 @@ export default function GameInterface({
   gameId,
   players,
   history,
-  currentRoundNumber
+  currentRoundNumber,
+  initialPhase = 'BIDDING',
+  initialBids = {}
 }: {
   gameId: string,
   players: Player[],
   history: RoundData[],
-  currentRoundNumber: number
+  currentRoundNumber: number,
+  initialPhase?: 'BIDDING' | 'SCORING',
+  initialBids?: Record<string, number>
 }) {
   const [round, setRound] = useState(currentRoundNumber);
   const [historyState, setHistory] = useState(history);
   const [totals, setTotals] = useState(players.map(p => ({ id: p.gamePlayerId, score: p.total })));
 
-  const [phase, setPhase] = useState<'BIDDING' | 'SCORING'>('BIDDING');
-  const [currentBids, setCurrentBids] = useState<Record<string, number>>({});
+  const [phase, setPhase] = useState<'BIDDING' | 'SCORING'>(initialPhase);
+  const [currentBids, setCurrentBids] = useState<Record<string, number>>(initialBids);
   const [currentTricks, setCurrentTricks] = useState<Record<string, number>>({});
   const [currentBonus, setCurrentBonus] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [showVictory, setShowVictory] = useState(true);
   const [editingCell, setEditingCell] = useState<{ round: number, playerId: string, field: 'bid' | 'tricks' | 'bonus' } | null>(null);
-  const [editValue, setEditValue] = useState<number>(0);
+  const [editValue, setEditValue] = useState<string>('');
 
   const router = useRouter();
   const isGameOver = round > 10;
@@ -84,12 +88,29 @@ export default function GameInterface({
     const s = roundData.playerScores[playerId];
     if (!s) return;
     setEditingCell({ round: roundNum, playerId, field });
-    setEditValue(s[field]);
+    setEditValue(String(s[field]));
   };
 
-  const saveInlineEdit = async () => {
+  // Read value directly from input element to avoid React state timing issues with arrows
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const inputValue = e.currentTarget.value;
+    saveInlineEditWithValue(inputValue);
+  };
+
+  const handleInputChange = (value: string) => {
+    setEditValue(value);
+  };
+
+  const saveInlineEditWithValue = async (inputValue: string) => {
     if (!editingCell) return;
     const { round: editRound, playerId, field } = editingCell;
+
+    // Parse the value - if empty or invalid, cancel edit
+    const numValue = inputValue.trim() === '' ? null : parseInt(inputValue);
+    if (numValue === null || isNaN(numValue)) {
+      setEditingCell(null);
+      return;
+    }
 
     // Update history in-place
     const newHistory = historyState.map(h => {
@@ -97,7 +118,7 @@ export default function GameInterface({
       const oldScore = h.playerScores[playerId];
       if (!oldScore) return h;
 
-      const updatedScoreData = { ...oldScore, [field]: editValue };
+      const updatedScoreData = { ...oldScore, [field]: numValue };
       updatedScoreData.score = calculateRoundScore({
         roundNumber: editRound,
         bid: updatedScoreData.bid,
@@ -124,22 +145,35 @@ export default function GameInterface({
     });
     setTotals(newTotals);
 
-    // Save to DB
+    // Save to DB using updateRoundScore (not submitRoundScore)
     const roundData = newHistory.find(h => h.roundNumber === editRound);
     if (roundData) {
       const scoresToSubmit = players.map(p => {
         const s = roundData.playerScores[p.gamePlayerId];
         return s ? { gamePlayerId: p.gamePlayerId, bid: s.bid, tricks: s.tricks, bonus: s.bonus, score: s.score } : null;
       }).filter(Boolean) as { gamePlayerId: string; bid: number; tricks: number; bonus: number; score: number }[];
-      await submitRoundScore(gameId, editRound, scoresToSubmit);
+      await updateRoundScore(gameId, editRound, scoresToSubmit);
     }
 
     setEditingCell(null);
     router.refresh();
   };
 
-  const startScoring = () => {
-    setPhase('SCORING');
+  const startScoring = async () => {
+    // Save bids to database before transitioning to scoring
+    setLoading(true);
+    try {
+      const bidsToSave = players.map(p => ({
+        gamePlayerId: p.gamePlayerId,
+        bid: currentBids[p.gamePlayerId] || 0
+      }));
+      await saveBids(gameId, round, bidsToSave);
+      setPhase('SCORING');
+    } catch (err) {
+      console.error('Error saving bids:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const finishRound = async () => {
@@ -205,9 +239,10 @@ export default function GameInterface({
                 <input
                   type="number"
                   value={editValue}
-                  onChange={e => setEditValue(parseInt(e.target.value) || 0)}
-                  onBlur={saveInlineEdit}
-                  onKeyDown={e => e.key === 'Enter' && saveInlineEdit()}
+                  onChange={e => handleInputChange(e.target.value)}
+                  onBlur={handleBlur}
+                  onClick={e => e.stopPropagation()}
+                  onKeyDown={e => e.key === 'Enter' && handleBlur(e as unknown as React.FocusEvent<HTMLInputElement>)}
                   autoFocus
                   className={styles.inlineInput}
                 />
@@ -223,9 +258,10 @@ export default function GameInterface({
                 <input
                   type="number"
                   value={editValue}
-                  onChange={e => setEditValue(parseInt(e.target.value) || 0)}
-                  onBlur={saveInlineEdit}
-                  onKeyDown={e => e.key === 'Enter' && saveInlineEdit()}
+                  onChange={e => handleInputChange(e.target.value)}
+                  onBlur={handleBlur}
+                  onClick={e => e.stopPropagation()}
+                  onKeyDown={e => e.key === 'Enter' && handleBlur(e as unknown as React.FocusEvent<HTMLInputElement>)}
                   autoFocus
                   className={styles.inlineInput}
                 />
@@ -241,9 +277,10 @@ export default function GameInterface({
                 <input
                   type="number"
                   value={editValue}
-                  onChange={e => setEditValue(parseInt(e.target.value) || 0)}
-                  onBlur={saveInlineEdit}
-                  onKeyDown={e => e.key === 'Enter' && saveInlineEdit()}
+                  onChange={e => handleInputChange(e.target.value)}
+                  onBlur={handleBlur}
+                  onClick={e => e.stopPropagation()}
+                  onKeyDown={e => e.key === 'Enter' && handleBlur(e as unknown as React.FocusEvent<HTMLInputElement>)}
                   autoFocus
                   className={styles.inlineInput}
                 />

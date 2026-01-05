@@ -16,9 +16,9 @@ export default function LoginPage() {
       body: JSON.stringify({ password }),
       headers: { 'Content-Type': 'application/json' },
     });
-
     if (res.ok) {
-      router.push('/admin');
+      // Use hard navigation to ensure middleware sees the new cookie
+      window.location.href = '/admin';
     } else {
       setError('Mot de passe invalide');
     }
