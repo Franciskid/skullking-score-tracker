@@ -27,14 +27,15 @@
 
 body {
   background-color: var(--bg-ocean);
-  background-image: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.6)), url('/assets/pirate-ship.png');
+  background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6)), url('/assets/pirate-ship.png');
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
   color: #e3dcd2;
   font-family: var(--font-lato);
   min-height: 100vh;
-  overflow-x: hidden; /* Prevent horizontal scroll from animations */
+  overflow-x: hidden;
+  /* Prevent horizontal scroll from animations */
 }
 
 h1,
@@ -89,7 +90,6 @@ a:hover {
 .glass td,
 .glass span,
 .glass div {
-  color: var(--ink);
   text-shadow: none;
   text-transform: uppercase;
 }

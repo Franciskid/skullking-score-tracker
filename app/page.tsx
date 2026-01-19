@@ -16,6 +16,7 @@ export default function Home() {
             <h2>Prêt pour l'aventure ?</h2>
             <div className={styles.actions}>
               <Link href="/game/new" className={styles.primaryBtn}>Nouvelle Partie</Link>
+              <Link href="/games" className={styles.secondaryBtn}>Historique</Link>
               <Link href="/leaderboard" className={styles.secondaryBtn}>Classement</Link>
             </div>
           </div>

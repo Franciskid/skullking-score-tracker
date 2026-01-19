@@ -10,18 +10,520 @@
 
 .header {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: rgba(0, 0, 0, 0.6);
-  padding: 1rem;
-  border-radius: 4px;
+  flex-direction: column;
+  margin-bottom: 1rem;
+  padding: 1rem 1.25rem;
+  background: linear-gradient(135deg, rgba(44, 30, 20, 0.95) 0%, rgba(62, 39, 35, 0.9) 100%);
   border: 2px solid var(--gold);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
 }
 
-.gameInfo h1 {
-  font-size: 2rem;
+.headerTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.titleGroup {
+  display: flex;
+  align-items: center;
+  user-select: none;
+  gap: 0.5rem;
+}
+
+.titleGroup h1 {
   margin: 0;
+  font-family: var(--font-cinzel);
+  font-size: 1.8rem;
   color: var(--gold);
+  text-shadow: 2px 2px 0 #000, 0 0 15px rgba(255, 215, 0, 0.3);
+  letter-spacing: 2px;
+  white-space: nowrap;
+}
+
+/* Collapse Arrow */
+.collapseArrow {
+  font-size: 0.8rem;
+  color: rgba(255, 215, 0, 0.6);
+  transition: transform 0.3s ease;
+  display: inline-block;
+}
+
+.collapseArrow.collapsed {
+  transform: rotate(-90deg);
+}
+
+.gameId {
+  margin: 0;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-family: var(--font-lato);
+  white-space: nowrap;
+}
+
+/* Leader Advantage */
+.leaderAdvantage {
+  color: #81c784;
+  font-weight: 600;
+  font-size: 0.85em;
+}
+
+/* Mobile Header Adjustments */
+@media (max-width: 500px) {
+  .titleGroup h1 {
+    font-size: 1.4rem;
+  }
+
+  .gameId {
+    font-size: 0.75rem;
+  }
+
+  .collapseArrow {
+    font-size: 0.7rem;
+  }
+}
+
+
+/* ========================================
+   CLEAN STATS BAR - Redesigned
+   ======================================== */
+
+.statsBar {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1rem 0;
+  margin-top: 0.75rem;
+  border-top: 1px solid rgba(255, 215, 0, 0.2);
+  flex-wrap: wrap;
+  /* Collapsible animation */
+  overflow: hidden;
+  max-height: 500px;
+  /* Large enough for content */
+  opacity: 1;
+  transition: max-height 0.35s ease, opacity 0.25s ease, padding 0.35s ease, margin-top 0.35s ease;
+}
+
+.statsBarCollapsed {
+  max-height: 0;
+  opacity: 0;
+  padding: 0;
+  margin-top: 0;
+  border-top-color: transparent;
+}
+
+
+/* Round Badge - Most Prominent */
+.roundBadge {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 0.75rem 1.25rem;
+  border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+.roundLabel {
+  font-family: var(--font-cinzel);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.roundValue {
+  font-family: var(--font-cinzel);
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--gold);
+}
+
+.roundTotal {
+  font-family: var(--font-lato);
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* Game Stats - Inline with Dividers */
+.gameStats {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.statItem {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.statLabel {
+  font-family: var(--font-lato);
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.statValue {
+  font-family: var(--font-cinzel);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.statDivider {
+  color: rgba(255, 215, 0, 0.4);
+  font-size: 0.8rem;
+}
+
+/* Bid Card - Clear Status */
+.bidCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.6rem 1rem;
+  border-left: 3px solid;
+  background: rgba(0, 0, 0, 0.3);
+  margin-left: auto;
+  /* Push to right on desktop */
+}
+
+.bidMain {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-cinzel);
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.bidCount,
+.bidAvailable {
+  white-space: nowrap;
+}
+
+.bidSeparator {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.bidResult {
+  font-family: var(--font-lato);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+/* Bid Status Colors */
+.bidBalanced {
+  border-left-color: #4caf50;
+}
+
+.bidBalanced .bidResult {
+  color: #81c784;
+}
+
+.bidOver {
+  border-left-color: #ff9800;
+}
+
+.bidOver .bidResult {
+  color: #ffb74d;
+}
+
+.bidUnder {
+  border-left-color: #2196f3;
+}
+
+.bidUnder .bidResult {
+  color: #64b5f6;
+}
+
+/* ========================================
+   MOBILE RESPONSIVE - Stats Bar
+   ======================================== */
+@media (max-width: 700px) {
+  .statsBar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+
+  .roundBadge {
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  .gameStats {
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .statDivider {
+    display: none;
+  }
+
+  .statItem {
+    background: rgba(0, 0, 0, 0.2);
+    padding: 0.4rem 0.8rem;
+    border-radius: 3px;
+  }
+
+  .bidCard {
+    margin-left: 0;
+    align-items: center;
+    text-align: center;
+    padding: 1rem;
+  }
+
+  .bidMain {
+    flex-wrap: nowrap;
+  }
+}
+
+/* ========================================
+   TENDENCY CARD - Historical Bid Behavior
+   ======================================== */
+
+.tendencyCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: rgba(0, 0, 0, 0.3);
+  border-left: 3px solid;
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.tendencyHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tendencyIcon {
+  font-size: 1.1rem;
+}
+
+.tendencyLabel {
+  font-family: var(--font-lato);
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.tendencyStyle {
+  font-family: var(--font-cinzel);
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.tendencyBar {
+  position: relative;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+  overflow: visible;
+}
+
+.tendencyFill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+
+.tendencyMarker {
+  position: absolute;
+  left: 50%;
+  top: -2px;
+  width: 2px;
+  height: 12px;
+  background: rgba(255, 255, 255, 0.6);
+  transform: translateX(-50%);
+}
+
+.tendencyStats {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-lato);
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.tendencyPercent {
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+/* Tendency Styles */
+.tendencyConservative {
+  border-left-color: #2196f3;
+}
+
+.tendencyConservative .tendencyStyle {
+  color: #64b5f6;
+}
+
+.tendencyConservative .tendencyFill {
+  background: linear-gradient(90deg, #1565c0, #42a5f5);
+}
+
+.tendencyConservative .tendencyPercent {
+  color: #64b5f6;
+}
+
+.tendencyBalanced {
+  border-left-color: #4caf50;
+}
+
+.tendencyBalanced .tendencyStyle {
+  color: #81c784;
+}
+
+.tendencyBalanced .tendencyFill {
+  background: linear-gradient(90deg, #2e7d32, #66bb6a);
+}
+
+.tendencyBalanced .tendencyPercent {
+  color: #81c784;
+}
+
+.tendencyAggressive {
+  border-left-color: #ff9800;
+}
+
+.tendencyAggressive .tendencyStyle {
+  color: #ffb74d;
+}
+
+.tendencyAggressive .tendencyFill {
+  background: linear-gradient(90deg, #e65100, #ffa726);
+}
+
+.tendencyAggressive .tendencyPercent {
+  color: #ffb74d;
+}
+
+/* Player Initials on Bar */
+.playerInitial {
+  position: absolute;
+  top: -18px;
+  transform: translateX(-50%);
+  font-family: var(--font-cinzel);
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: var(--gold);
+  background: rgba(0, 0, 0, 0.7);
+  padding: 2px 5px;
+  border-radius: 3px;
+  white-space: nowrap;
+  z-index: 5;
+  border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+/* Player Stat Badges */
+.playerBadges {
+  display: flex;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+.playerBadges span {
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-family: var(--font-cinzel);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.badgeAggressive {
+  background: rgba(255, 87, 34, 0.2);
+  color: #ff7043;
+  border: 1px solid rgba(255, 87, 34, 0.4);
+}
+
+.badgeConservative {
+  background: rgba(33, 150, 243, 0.2);
+  color: #64b5f6;
+  border: 1px solid rgba(33, 150, 243, 0.4);
+}
+
+.badgeZero {
+  background: rgba(156, 39, 176, 0.2);
+  color: #ba68c8;
+  border: 1px solid rgba(156, 39, 176, 0.4);
+}
+
+/* Skull Head with Static Color Effects */
+.tendencySkull {
+  width: 28px;
+  height: 28px;
+  margin-left: auto;
+  cursor: help;
+}
+
+/* Frost effect for conservative - static */
+.skullConservative {
+  filter: drop-shadow(0 0 4px #64b5f6) drop-shadow(0 0 8px #2196f3) brightness(1.1) hue-rotate(180deg);
+}
+
+/* Balanced - neutral glow - static */
+.skullBalanced {
+  filter: drop-shadow(0 0 3px #81c784) brightness(1.05);
+}
+
+/* Flame effect for aggressive - static */
+.skullAggressive {
+  filter: drop-shadow(0 0 6px #ff9800) drop-shadow(0 0 12px #ff5722) brightness(1.3);
+}
+
+/* Mobile Responsive */
+@media (max-width: 700px) {
+  .tendencyCard {
+    padding: 1rem;
+  }
+
+  .tendencyHeader {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .tendencySkull {
+    order: -1;
+  }
+
+  .tendencyStats {
+    justify-content: center;
+    gap: 1.5rem;
+  }
+
+  .playerInitial {
+    font-size: 0.6rem;
+    padding: 1px 4px;
+    top: -16px;
+  }
+}
+
+.gameStatIcon {
+  font-size: 1.1rem;
+}
+
+.gameStatValue {
+  font-weight: 700;
+  font-size: 1rem;
+  /* Bigger values */
+  color: #fff;
+}
+
+.historicalTension {
+  padding-top: 0;
+  margin-top: 0;
 }
 
 /* Actions Menu */
@@ -59,6 +561,14 @@
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9);
   display: flex;
   flex-direction: column;
+}
+
+/* When header wraps (button moves to left), anchor dropdown to left */
+@media (max-width: 500px) {
+  .dropdown {
+    right: auto;
+    left: 0;
+  }
 }
 
 .dropdownItem {
@@ -252,12 +762,41 @@
   margin-bottom: 4px;
 }
 
+/* .cellScore closing brace was above */
+
+.activeCell {
+  min-width: 220px;
+  /* Ensure space for Label + Wheel side-by-side (absolute) */
+}
+
 .lockedBid {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: #1a1a1a;
   text-transform: uppercase;
   font-weight: 800;
   text-align: center;
+  margin-bottom: 4px;
+}
+
+.cardLockedBid {
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  text-align: center;
+  margin-bottom: 8px;
+  position: relative;
+}
+
+.bidLabelWrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.absoluteWheel {
+  position: absolute;
+  left: 105%;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 .tricksLabel {
@@ -292,6 +831,13 @@
   text-align: center;
   font-weight: 700;
   color: #3e2723;
+
+  /* Flex to stack label and value */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
 }
 
 .editableField:hover {
@@ -300,20 +846,21 @@
   transform: scale(1.02);
 }
 
-.editableField span {
-  display: block;
-  font-size: 0.65rem;
+.miniLabel {
+  font-size: 0.55rem;
   color: #5d4037;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
+  line-height: 1;
+  opacity: 0.85;
+  margin-bottom: 2px;
 }
 
-.editableField span::after {
-  content: '';
-  display: block;
-  font-size: 0.9rem;
+.miniValue {
+  font-size: 0.85rem;
   color: #3e2723;
   font-weight: 800;
+  line-height: 1;
 }
 
 .inlineInput {

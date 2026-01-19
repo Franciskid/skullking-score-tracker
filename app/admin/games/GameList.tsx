@@ -29,7 +29,7 @@ export default function GameList({ games }: { games: any[] }) {
             <tr>
               <th>Date</th>
               <th>ID</th>
-              <th>Joueurs</th>
+              <th>Pirates</th>
               <th>Statut</th>
               <th>Actions</th>
             </tr>
@@ -58,7 +58,7 @@ export default function GameList({ games }: { games: any[] }) {
                     disabled={deleting === game.id}
                     className={styles.deleteBtn}
                   >
-                    {deleting === game.id ? '...' : '🗑️'}
+                    {deleting === game.id ? '...' : '☠️'}
                   </button>
                 </td>
               </tr>
@@ -97,7 +97,7 @@ export default function GameList({ games }: { games: any[] }) {
                 disabled={deleting === game.id}
                 className={styles.deleteBtn}
               >
-                {deleting === game.id ? '...' : '🗑️ Supprimer'}
+                {deleting === game.id ? '...' : '☠️ Supprimer'}
               </button>
             </div>
           </div>

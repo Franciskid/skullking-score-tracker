@@ -65,6 +65,10 @@ alter table rounds enable row level security;
 alter table scores enable row level security;
 alter table cards enable row level security;
 
+ALTER TABLE scores 
+ADD CONSTRAINT scores_round_player_unique 
+UNIQUE (round_id, game_player_id);
+
 -- Allow public read/write for now (simplifies "shared password" logic)
 create policy "Public Access" on players for all using (true) with check (true);
 create policy "Public Access" on games for all using (true) with check (true);

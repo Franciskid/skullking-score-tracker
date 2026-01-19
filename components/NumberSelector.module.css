@@ -13,6 +13,35 @@
   -webkit-overflow-scrolling: touch;
   mask-image: linear-gradient(to right, black 85%, transparent 100%);
   -webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%);
+  position: relative;
+  /* Ensure offsetLeft is relative to this container */
+}
+
+/* ... existing styles ... */
+
+/* Mini variant for inline bid editing */
+.containerMini {
+  display: flex;
+  justify-content: flex-start;
+  flex-wrap: nowrap;
+  gap: 2px;
+  /* Tighter gap */
+  overflow-x: auto;
+  padding: 4px 0;
+  width: 60px;
+  /* (24px * 3) + (2px * 2 gaps) + padding/buffer = ~80-84px */
+  max-width: 60px;
+  /* Strict limit */
+  margin: 0;
+  /* No margin to allow absolute positioning control */
+  scrollbar-width: none;
+  /* Hide scrollbar for cleaner look */
+  -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
+  mask-image: linear-gradient(to right, transparent 0%, black 15%, black 85%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 15%, black 85%, transparent 100%);
+  position: relative;
+  /* Ensure offsetLeft is relative to this container */
 }
 
 .container::-webkit-scrollbar {
@@ -129,4 +158,72 @@
 
   }
 
+}
+
+/* Mini variant for inline bid editing */
+.containerMini {
+  display: flex;
+  justify-content: flex-start;
+  flex-wrap: nowrap;
+  gap: 2px;
+  /* Tighter gap */
+  overflow-x: auto;
+  padding: 4px 0;
+  width: 60px;
+  /* (24px * 3) + (2px * 2 gaps) + padding/buffer = ~80-84px */
+  max-width: 60px;
+  /* Strict limit */
+  margin: 0;
+  scrollbar-width: none;
+  /* Hide scrollbar for cleaner look */
+  -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
+  mask-image: linear-gradient(to right, transparent 0%, black 15%, black 85%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 15%, black 85%, transparent 100%);
+}
+
+.containerMini::-webkit-scrollbar {
+  display: none;
+  /* Hide scrollbar */
+}
+
+.optionMini {
+  flex: 0 0 24px;
+  /* Smaller coins */
+  min-width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-image: url('/assets/gold-coin.png');
+  background-size: cover;
+  background-position: center;
+  background-color: transparent;
+  filter: sepia(0.8) brightness(0.6) grayscale(0.4);
+  color: #fff;
+  font-family: var(--font-cinzel);
+  font-weight: 800;
+  font-size: 0.75rem;
+  /* Smaller font */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.8);
+  border: none;
+}
+
+.optionMini:hover {
+  filter: sepia(0.5) brightness(0.8);
+  transform: scale(1.1);
+  z-index: 10;
+}
+
+.optionMini.selected {
+  filter: none;
+  color: #3e2723;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
+  transform: scale(1.15);
+  z-index: 5;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4);
+  /* Reduced shadow for smaller size */
 }

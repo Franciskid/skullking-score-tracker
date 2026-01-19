@@ -12,11 +12,11 @@ export default function Navbar() {
     <nav className={styles.navbar}>
       <div className={styles.logo}>
         <Link href="/">
-          <Image 
-            src="/assets/skull-head.png" 
-            alt="Skull" 
-            width={40} 
-            height={40} 
+          <Image
+            src="/assets/skull-head.png"
+            alt="Skull"
+            width={40}
+            height={40}
             className={styles.skullIcon}
           />
           Skull King
@@ -31,6 +31,9 @@ export default function Navbar() {
         </li>
         <li>
           <Link href="/leaderboard" className={pathname === '/leaderboard' ? styles.active : ''}>Classement</Link>
+        </li>
+        <li>
+          <Link href="/games" className={pathname === '/games' ? styles.active : ''}>Historique</Link>
         </li>
         <li>
           <Link href="/admin" className={pathname.startsWith('/admin') ? styles.active : ''}>Admin</Link>

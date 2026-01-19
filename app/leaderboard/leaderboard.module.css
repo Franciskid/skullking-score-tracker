@@ -45,7 +45,7 @@
 
 .rank1 {
   background: linear-gradient(90deg, rgba(255, 215, 0, 0.1) 0%, transparent 100%);
-  color: #ffd700;
+  color: #e0bf01
 }
 
 .rank2 {
@@ -60,19 +60,25 @@
   .container {
     padding: 1rem;
   }
+
   .header {
     margin-bottom: 1.5rem;
   }
+
   .header h1 {
     font-size: 1.8rem;
   }
-  .table td, .table th {
+
+  .table td,
+  .table th {
     padding: 0.6rem 0.4rem;
     font-size: 0.75rem;
   }
+
   .rank {
     font-size: 1rem;
   }
+
   .name {
     font-size: 0.85rem;
   }
